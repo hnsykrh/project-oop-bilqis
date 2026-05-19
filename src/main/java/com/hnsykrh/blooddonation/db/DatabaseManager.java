@@ -13,18 +13,30 @@ import java.time.Instant;
  */
 public final class DatabaseManager {
 
-    private static final String JDBC_URL;
+    private final String jdbcUrl;
 
-    static {
-        Path dbPath = Path.of(System.getProperty("user.dir"), "blooddonation.db");
-        JDBC_URL = "jdbc:sqlite:" + dbPath.toAbsolutePath().toString().replace(File.separatorChar, '/');
+    /** Production database in the project working directory. */
+    public DatabaseManager() {
+        this(Path.of(System.getProperty("user.dir"), "blooddonation.db"));
+    }
+
+    /** Allows isolated databases (e.g. automated tests). */
+    public DatabaseManager(Path dbFile) {
+        this.jdbcUrl = "jdbc:sqlite:" + dbFile.toAbsolutePath().toString().replace(File.separatorChar, '/');
     }
 
     public Connection openConnection() throws SQLException {
-        return DriverManager.getConnection(JDBC_URL);
+        return DriverManager.getConnection(jdbcUrl);
     }
 
     public void initialize() {
+        initialize(true);
+    }
+
+    /**
+     * @param seedDemo when {@code true}, inserts sample donors/donation/request on first empty database
+     */
+    public void initialize(boolean seedDemo) {
         try (Connection connection = openConnection(); Statement st = connection.createStatement()) {
             st.executeUpdate("""
                     CREATE TABLE IF NOT EXISTS staff (
@@ -86,13 +98,13 @@ public final class DatabaseManager {
             st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_donations_date ON donations(donation_date)");
             st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_donors_blood ON donors(blood_type)");
             st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_requests_type ON recipient_requests(blood_type)");
-            seedIfEmpty(connection);
+            seedIfEmpty(connection, seedDemo);
         } catch (SQLException e) {
             throw new IllegalStateException("Failed to initialize database", e);
         }
     }
 
-    private void seedIfEmpty(Connection connection) throws SQLException {
+    private void seedIfEmpty(Connection connection, boolean seedDemo) throws SQLException {
         try (var ps = connection.prepareStatement("SELECT COUNT(*) FROM staff");
              var rs = ps.executeQuery()) {
             rs.next();
@@ -117,7 +129,9 @@ public final class DatabaseManager {
             }
             ps.executeBatch();
         }
-        seedDemoRecords(connection, now);
+        if (seedDemo) {
+            seedDemoRecords(connection, now);
+        }
     }
 
     /**

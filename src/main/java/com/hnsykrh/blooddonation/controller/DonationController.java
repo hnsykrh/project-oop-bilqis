@@ -103,7 +103,12 @@ public final class DonationController {
                     throw new ServiceException("Donation is already voided.");
                 }
                 donationDao.voidDonation(connection, donationId, voidReason.trim());
-                inventoryDao.addStock(connection, donation.getDonorBloodType(), -donation.getVolumeMl());
+                int stock = inventoryDao.getStockMl(connection, donation.getDonorBloodType());
+                if (stock < donation.getVolumeMl()) {
+                    throw new ServiceException(
+                            "Cannot void donation: only " + stock + " mL remains in inventory (blood may have been issued).");
+                }
+                inventoryDao.subtractStock(connection, donation.getDonorBloodType(), donation.getVolumeMl());
                 donorDao.refreshLastDonationDateFromDonations(connection, donation.getDonorId());
                 connection.commit();
             } catch (ServiceException e) {

@@ -66,7 +66,15 @@ Do not use plain-text passwords in production; this is for coursework demonstrat
 | Third-party libraries | sqlite-jdbc, JFreeChart, OpenPDF |
 | Video demo | Record a short walkthrough for submission (login → donate → inventory → fulfill request → chart/PDF) |
 
-See also [docs/RUBRIC.md](docs/RUBRIC.md).
+See also [docs/RUBRIC.md](docs/RUBRIC.md) and [docs/TEST_REPORT.md](docs/TEST_REPORT.md).
+
+## Automated tests (1001+ scenarios)
+
+```bash
+mvn test
+```
+
+Runs eligibility/fulfillment matrix tests, integration workflows, and rubric compliance checks.
 
 ## Build JAR (optional)
 

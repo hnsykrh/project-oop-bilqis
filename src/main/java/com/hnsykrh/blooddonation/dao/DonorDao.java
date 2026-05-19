@@ -53,7 +53,6 @@ public final class DonorDao {
             ps.setString(5, hasQ ? q : null);
             ps.setString(6, hasQ ? q : null);
             ps.setString(7, hasQ ? q : null);
-            ps.setString(8, hasQ ? q : null);
             try (ResultSet rs = ps.executeQuery()) {
                 List<Donor> out = new ArrayList<>();
                 while (rs.next()) {

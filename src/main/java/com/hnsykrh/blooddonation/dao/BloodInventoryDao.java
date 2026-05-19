@@ -62,6 +62,12 @@ public final class BloodInventoryDao {
     /**
      * Subtracts stock when fulfilling a request. Caller must ensure sufficient stock.
      */
+    public int getStockMl(Connection connection, String bloodType) throws SQLException {
+        return findByBloodType(connection, bloodType)
+                .map(BloodInventory::getStockMl)
+                .orElse(0);
+    }
+
     public void subtractStock(Connection connection, String bloodType, int deltaMl) throws SQLException {
         if (deltaMl <= 0) {
             return;
